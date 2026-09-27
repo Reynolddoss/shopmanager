@@ -1,0 +1,6 @@
+{
+  "identifier": "default",
+  "description": "Splash page permissions. The shop UI itself is served by the local API and needs no Tauri IPC.",
+  "windows": ["main"],
+  "permissions": ["core:default"]
+}

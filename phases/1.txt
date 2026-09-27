@@ -1,0 +1,690 @@
+# MM Electricals — Phase 1
+
+## Foundation, Architecture & Data Model
+
+You are the lead software architect and senior full-stack engineer responsible for building a production-grade Windows desktop inventory and shop-management application called:
+
+**MM Electricals**
+
+This is a real business application for an electrical retail/wholesale shop.
+
+We will build this application in 5 controlled phases.
+
+This prompt is ONLY for:
+
+**PHASE 1 — FOUNDATION, ARCHITECTURE AND DATA MODEL**
+
+Do not implement the complete business application yet.
+
+---
+
+# 1. CORE PRODUCT REQUIREMENTS
+
+The final application must:
+
+* Run on Windows as a standalone desktop application.
+* Be developed from macOS or Linux.
+* Work offline.
+* Use a local SQLite database.
+* Have a premium modern desktop UI.
+* Be maintainable and upgradeable for many years.
+* Protect business data from crashes, failed updates and accidental data loss.
+* Support future migration to PostgreSQL/cloud/multi-PC architecture without requiring a complete rewrite.
+* Eventually be packaged as a professional Windows installer.
+* The end user must NOT need Python, Node.js, npm, Django or developer tools installed.
+
+The application should eventually provide functionality similar to a lightweight Vyapar-style business application, but specifically optimized for an electrical shop.
+
+---
+
+# 2. TECHNOLOGY STACK
+
+Backend:
+
+* Python 3.12+
+* Django
+* Django REST Framework
+* Django ORM
+* SQLite
+* pytest / Django testing tools
+
+Frontend:
+
+* React
+* TypeScript
+* Vite
+* Tailwind CSS
+* modern CSS
+* component-based architecture
+
+Desktop:
+
+* Tauri
+
+Architecture:
+
+React
+↓
+Tauri
+↓
+Django local API
+↓
+Service layer
+↓
+Django ORM
+↓
+SQLite
+
+Do NOT allow React to directly access SQLite.
+
+---
+
+# 3. ARCHITECTURAL PRINCIPLES
+
+Follow these rules strictly:
+
+1. React must never directly manipulate the database.
+2. Business logic must not live inside React components.
+3. Django views should remain thin.
+4. Business operations must use service-layer functions/classes.
+5. Use serializers for API validation.
+6. Use database transactions for multi-step operations.
+7. Every schema change must use Django migrations.
+8. Never manually modify the SQLite schema.
+9. Avoid unnecessary dependencies.
+10. Prefer stable, well-supported libraries.
+11. Keep modules separated by business domain.
+12. Do not duplicate business logic between frontend and backend.
+13. Backend must be the authoritative source for calculations.
+14. Frontend should primarily display and collect information.
+15. Financial and inventory operations must be atomic.
+16. Important records must be auditable.
+17. Avoid destructive hard deletes for financial/history records.
+18. Design APIs so a future cloud backend can replace the local backend.
+19. Keep configuration separate from business logic.
+20. Never silently discard user data.
+
+---
+
+# 4. REPOSITORY STRUCTURE
+
+Create a clean structure similar to:
+
+backend/
+manage.py
+config/
+apps/
+core/
+products/
+inventory/
+vendors/
+customers/
+purchases/
+sales/
+payments/
+expenses/
+analytics/
+reports/
+
+frontend/
+src/
+app/
+components/
+layouts/
+pages/
+features/
+hooks/
+services/
+types/
+utils/
+
+desktop/
+src-tauri/
+
+You may adjust this if there is a strong architectural reason.
+
+Document any deviation.
+
+---
+
+# 5. CORE MASTER DATA
+
+The following must be treated as permanent master data:
+
+* Products
+* Categories
+* Subcategories
+* Brands
+* Units
+* Vendors
+* Customers
+
+Vendor and customer records must remain available for future transactions and reporting.
+
+Do not design vendors/customers as temporary fields inside invoices.
+
+---
+
+# 6. PRODUCT MODEL
+
+Design a flexible Product model.
+
+Potential fields:
+
+* id
+* name
+* SKU
+* barcode
+* category
+* subcategory
+* brand
+* model
+* specification
+* unit
+* HSN code
+* GST/tax rate
+* MRP
+* default selling price
+* default safe selling price
+* default maximum discount
+* active/inactive
+* storage location/rack
+* notes
+* created_at
+* updated_at
+
+Do not make the model specific to only wires, switches or fans.
+
+It must support all electrical-shop products.
+
+Examples:
+
+* Polycab 1.5 sq mm wire
+* Polycab 2.5 sq mm wire
+* Anchor 6A switch
+* Crompton ceiling fan
+* MCB
+* LED bulb
+* conduit pipe
+* distribution board
+
+---
+
+# 7. PRODUCT ALIASES / SEARCH DATA
+
+Create architecture for product aliases/tags.
+
+A product may have multiple search terms.
+
+Example:
+
+Product:
+Polycab 2.5 sq mm FR House Wire
+
+Aliases:
+
+* 2.5 wire
+* 2.5mm wire
+* 2.5 sq
+* 2.5 square
+* house wire
+* polycab wire
+
+This will later power the Smart Product Finder.
+
+---
+
+# 8. VENDOR MODEL
+
+Vendor must be a permanent entity.
+
+Store:
+
+* name
+* phone
+* alternate phone
+* email
+* address
+* GSTIN
+* contact person
+* payment terms
+* notes
+* active/inactive
+* created_at
+* updated_at
+
+A product can have MANY vendors.
+
+A vendor can supply MANY products.
+
+Do NOT simply put vendor_id inside Product.
+
+Create a ProductVendor relationship.
+
+---
+
+# 9. PRODUCT-VENDOR RELATIONSHIP
+
+Create ProductVendor.
+
+It should eventually support:
+
+* product
+* vendor
+* vendor SKU
+* preferred vendor
+* last purchase price
+* average purchase price
+* lowest historical purchase price
+* last purchase date
+* typical discount
+* lead time
+* minimum order quantity
+* notes
+
+Do not duplicate historical purchase data here.
+
+Historical transactions must remain authoritative.
+
+---
+
+# 10. CUSTOMER MODEL
+
+Customer must be a permanent master record.
+
+Support:
+
+* name
+* phone
+* alternate phone
+* address
+* GSTIN
+* customer type
+* credit limit
+* opening balance
+* notes
+* active/inactive
+* created_at
+* updated_at
+
+Customer types should be extensible.
+
+Examples:
+
+* Retail
+* Electrician
+* Contractor
+* Builder
+* Wholesale
+* Other
+
+---
+
+# 11. BATCH-AWARE INVENTORY ARCHITECTURE
+
+This is a critical requirement.
+
+The same product can be purchased at different prices at different times.
+
+Therefore inventory must support batches or purchase lots.
+
+Do NOT simply maintain one stock quantity and overwrite pricing.
+
+Create an architecture for inventory batches.
+
+Example:
+
+Product:
+Polycab 2.5 sq mm wire
+
+Batch #001:
+
+* Vendor ABC
+* Purchase date 10-Aug
+* Purchase cost ₹1,450
+* Selling price ₹1,900
+* Safe selling price ₹1,750
+* Maximum discount 8%
+* Remaining stock 4
+
+Batch #002:
+
+* Vendor ABC
+* Purchase date 24-Aug
+* Purchase cost ₹1,580
+* Selling price ₹2,050
+* Safe selling price ₹1,850
+* Maximum discount 8%
+* Remaining stock 20
+
+Historical batch information must NEVER be overwritten.
+
+---
+
+# 12. PURCHASE-PRICE HISTORY
+
+Design the database so every purchase records historical pricing.
+
+For each PurchaseItem eventually support:
+
+* product
+* batch
+* quantity
+* base purchase price
+* supplier discount percentage
+* supplier discount amount
+* effective purchase cost
+* MRP
+* selling price
+* safe selling price
+* maximum customer discount
+* notes
+
+The software must preserve the exact values used when that batch was purchased.
+
+---
+
+# 13. PRICING PHILOSOPHY
+
+The owner controls pricing.
+
+The software may calculate and recommend, but must not silently change pricing.
+
+When entering a new batch, the owner should eventually be able to specify:
+
+* purchase price
+* supplier discount
+* effective cost
+* MRP
+* selling price
+* minimum safe selling price
+* maximum discount
+* optional bulk price
+* optional customer-specific pricing
+
+These values must be stored historically.
+
+---
+
+# 14. PREVIOUS-BATCH AWARENESS
+
+When a new batch is entered for an existing product, the system must eventually be capable of detecting the previous batch.
+
+Example notification:
+
+"Previous batch detected"
+
+Previous:
+Cost: ₹1,450
+Selling: ₹1,900
+Safe price: ₹1,750
+Maximum discount: 8%
+
+New:
+Cost: ₹1,580
+
+The owner should later be able to:
+
+* Use previous pricing
+* Copy previous pricing and edit
+* Set completely new pricing
+
+Do NOT implement the complete UI in Phase 1.
+
+But create the database architecture so this is possible.
+
+---
+
+# 15. INVENTORY MOVEMENT ARCHITECTURE
+
+Every stock change must eventually have a stock movement record.
+
+Movement types should be extensible.
+
+Examples:
+
+* OPENING_STOCK
+* PURCHASE
+* SALE
+* SALE_RETURN
+* PURCHASE_RETURN
+* ADJUSTMENT_IN
+* ADJUSTMENT_OUT
+* DAMAGE
+* EXPIRED/UNSELLABLE if needed later
+
+Never allow silent stock changes.
+
+---
+
+# 16. AUDIT LOG
+
+Create a reusable audit architecture.
+
+Important actions should eventually be logged:
+
+* product creation
+* product modification
+* vendor modification
+* customer modification
+* stock adjustment
+* purchase
+* sale
+* payment
+* pricing change
+* batch creation
+* restore
+* important settings changes
+
+Include:
+
+* timestamp
+* action
+* entity
+* entity ID
+* old data where appropriate
+* new data where appropriate
+* source
+* user/system identifier
+
+Design it so multi-user support can be introduced later.
+
+---
+
+# 17. DATABASE SAFETY
+
+Configure SQLite appropriately for a desktop application.
+
+Consider:
+
+* WAL mode
+* foreign key enforcement
+* appropriate indexes
+* atomic transactions
+* safe connection handling
+* integrity checking
+* migration tracking
+
+The database must be treated as business-critical.
+
+---
+
+# 18. BACKUP ARCHITECTURE
+
+Do not implement the complete backup UI yet.
+
+But create a clean backup service architecture supporting:
+
+* SQLite database backup
+* CSV export
+* backup metadata
+* backup validation
+* restore
+* backup retention
+* scheduled backup
+
+The final system will support both SQLite and CSV backups.
+
+SQLite is the primary recovery format.
+
+CSV is a portable secondary/export format.
+
+---
+
+# 19. API FOUNDATION
+
+Create:
+
+* health check endpoint
+* application version endpoint
+* API error format
+* common pagination
+* common filtering conventions
+* common search conventions
+* API documentation structure
+
+The API must be versionable.
+
+Use a structure that allows:
+
+/api/v1/
+
+---
+
+# 20. APPLICATION SETTINGS
+
+Create an application settings architecture for future configuration such as:
+
+* shop name
+* address
+* GSTIN
+* phone
+* invoice prefix
+* currency
+* default tax behavior
+* backup settings
+* low-stock thresholds
+* pricing settings
+* notification settings
+
+Do not scatter settings throughout the code.
+
+---
+
+# 21. PREMIUM UI FOUNDATION
+
+Build the initial desktop shell.
+
+Navigation:
+
+* Dashboard
+* Analytics
+* Inventory
+* Vendors
+* Customers
+* Purchases
+* Sales
+* Payments
+* Expenses
+* Reports
+* Settings
+
+The pages can initially be placeholders.
+
+The UI must NOT look like a generic Bootstrap admin template.
+
+Design language:
+
+* premium
+* clean
+* professional
+* modern
+* restrained
+* fast
+* desktop-first
+* excellent typography
+* subtle borders
+* subtle shadows
+* good whitespace
+* keyboard-friendly
+* clear hierarchy
+
+Include:
+
+* sidebar
+* top navigation
+* global search placeholder
+* notification area
+* user/application status
+* loading states
+* error states
+* empty states
+* confirmation dialogs
+* toast system
+
+---
+
+# 22. TESTING FOUNDATION
+
+Set up automated tests.
+
+At minimum test:
+
+* model validation
+* migrations
+* relationships
+* database constraints
+* basic API endpoints
+* transaction behavior
+
+---
+
+# 23. DEVELOPMENT PROCESS
+
+Before making major changes:
+
+1. Inspect the repository.
+2. Explain the architecture you intend to create.
+3. Identify conflicts.
+4. Implement incrementally.
+5. Run tests.
+6. Run type checking.
+7. Run linting.
+8. Fix errors.
+9. Do not leave known broken code.
+
+Do not implement Phase 2, Phase 3, Phase 4 or Phase 5 business functionality yet.
+
+---
+
+# 24. DEFINITION OF DONE
+
+Phase 1 is complete only when:
+
+* backend starts successfully
+* frontend starts successfully
+* Tauri development shell starts
+* React communicates with Django
+* SQLite works
+* migrations work
+* core models exist
+* tests pass
+* API health check works
+* application version endpoint works
+* basic premium UI shell works
+* project structure is documented
+
+At the end provide:
+
+1. Architecture summary
+2. Directory structure
+3. Database model summary
+4. API structure
+5. Files created
+6. Files modified
+7. Commands executed
+8. Tests executed
+9. Known limitations
+10. Exact instructions for starting Phase 2
+
+Do NOT proceed automatically to Phase 2.

@@ -1,0 +1,416 @@
+# MM Electricals — Phase 5
+
+## Production Hardening, Backup, Recovery, Updates & Windows Deployment
+
+The MM Electricals application is functionally complete.
+
+Do NOT introduce major new business functionality.
+
+This phase is about:
+
+**RELIABILITY, DATA SAFETY, RECOVERY, UPDATES AND WINDOWS DEPLOYMENT**
+
+---
+
+# 1. DATA SAFETY IS THE HIGHEST PRIORITY
+
+Treat all business data as critical.
+
+The application must be designed around:
+
+* no silent data loss
+* atomic transactions
+* recoverability
+* safe migrations
+* validated backups
+* safe restoration
+* upgrade protection
+
+---
+
+# 2. SQLITE BACKUP
+
+Implement automatic SQLite backups.
+
+Backup must:
+
+* create timestamped copies
+* never blindly overwrite previous backups
+* validate the backup
+* record metadata
+* support retention policy
+
+Example:
+
+backups/
+2026-08-24/
+database/
+MM_Electricals_2026-08-24_180000.sqlite
+csv/
+products.csv
+vendors.csv
+customers.csv
+purchases.csv
+purchase_items.csv
+sales.csv
+sale_items.csv
+payments.csv
+expenses.csv
+stock_movements.csv
+metadata.json
+
+---
+
+# 3. CSV BACKUP
+
+CSV is a secondary portable backup/export format.
+
+Support exports for:
+
+* products
+* categories
+* brands
+* vendors
+* customers
+* purchases
+* purchase items
+* sales
+* sale items
+* payments
+* expenses
+* stock movements
+* batch records
+* price history
+
+Include export timestamp and application/database version.
+
+---
+
+# 4. SCHEDULED BACKUP
+
+Allow:
+
+* manual backup
+* daily backup
+* weekly backup
+* configurable time
+* retention count
+
+The architecture must allow Windows Task Scheduler integration if required.
+
+The user should not have to manually run Python scripts.
+
+---
+
+# 5. RESTORE
+
+Implement a safe restore workflow.
+
+Before restoring:
+
+1. Validate backup.
+2. Verify backup integrity.
+3. Create a safety backup of current database.
+4. Confirm user action.
+5. Restore.
+6. Run SQLite integrity check.
+7. Run application-level validation.
+8. Verify migrations.
+9. Start normally.
+
+If restore fails:
+
+Attempt recovery using the safety backup.
+
+Never destroy the last known-good database without creating another backup.
+
+---
+
+# 6. DATABASE HEALTH
+
+On application startup:
+
+* check database accessibility
+* check integrity
+* check schema version
+* check pending migrations
+* check critical tables
+* detect corruption where possible
+
+Display a clear recovery message if something is wrong.
+
+Do not expose raw stack traces to normal users.
+
+---
+
+# 7. AUDIT LOGGING
+
+Ensure important actions are logged:
+
+* pricing changes
+* batch creation
+* stock adjustment
+* sales
+* purchases
+* payments
+* returns
+* customer changes
+* vendor changes
+* restore
+* backup
+* settings changes
+* price overrides
+
+---
+
+# 8. APPLICATION VERSIONING
+
+Implement:
+
+APP_VERSION
+
+DATABASE_SCHEMA_VERSION
+
+Every release must know its version.
+
+Database migrations must be applied safely.
+
+---
+
+# 9. UPGRADE SAFETY
+
+Before upgrading:
+
+1. Automatic backup
+2. Backup validation
+3. Application update
+4. Database migrations
+5. Database integrity check
+6. Application validation
+
+Never silently delete or transform business data.
+
+If migration fails, provide a recovery path.
+
+---
+
+# 10. WINDOWS PACKAGING
+
+Create a professional Windows installer.
+
+Target:
+
+MM Electricals Setup.exe
+
+The installed application must:
+
+* install cleanly
+* create required directories
+* create data directory
+* create backup directory
+* create logs directory
+* create shortcuts
+* support uninstall
+* preserve business data during uninstall
+* not require Python
+* not require Node
+* not require npm
+* not require Django installation
+* not require SQLite installation
+
+The final user should simply install and launch the application.
+
+Do NOT require:
+
+python manage.py runserver
+
+---
+
+# 11. DJANGO PACKAGING
+
+If necessary, package the Django backend using an appropriate mechanism such as PyInstaller or another reliable production approach.
+
+The final application should contain everything needed to run locally.
+
+Document:
+
+* backend packaging
+* frontend build
+* Tauri build
+* Windows installer creation
+
+---
+
+# 12. WINDOWS FILE LOCATIONS
+
+Use appropriate Windows application-data locations.
+
+Do not store the primary database in the application installation directory if that risks being overwritten during upgrades.
+
+Separate:
+
+Application files
+User/business data
+Backups
+Logs
+
+Document the exact locations.
+
+---
+
+# 13. CRASH RECOVERY
+
+Implement:
+
+* structured logs
+* graceful error handling
+* transaction rollback
+* startup health checks
+* recovery messages
+
+An unexpected application termination must not leave partially completed sales/purchases.
+
+---
+
+# 14. PRINTING
+
+Prepare production support for:
+
+* A4 invoices
+* thermal printer invoices
+
+Ensure printing architecture does not tightly couple business logic to a particular printer.
+
+---
+
+# 15. SECURITY
+
+Because this is a local business application:
+
+* validate all API input
+* avoid unsafe shell execution
+* protect local APIs
+* avoid exposing the backend unnecessarily
+* sanitize file paths
+* validate imported CSV files
+* protect backup/restore operations
+
+Do not add unnecessary authentication complexity for a single-user local application, but keep the architecture ready for future multi-user support.
+
+---
+
+# 16. PERFORMANCE
+
+Test with realistic data:
+
+* 50,000 products
+* thousands of customers
+* thousands of vendors
+* large purchase history
+* large sales history
+
+Ensure:
+
+* search remains responsive
+* dashboard remains usable
+* reports don't freeze the application
+* database queries are indexed
+
+---
+
+# 17. TESTING
+
+Perform:
+
+Clean installation
+First launch
+Database creation
+Product creation
+Vendor creation
+Customer creation
+Purchase
+New batch
+Previous batch warning
+Pricing copy
+Sale
+Discount warning
+Payment
+Return
+Backup
+CSV export
+Restore
+Database integrity check
+Application restart
+Failed transaction
+Upgrade/migration
+Uninstall
+Reinstall
+
+Test backup recovery using an actual copy of the database.
+
+---
+
+# 18. PRODUCTION BUILD
+
+Create reproducible build scripts.
+
+The final release process should be documented.
+
+Example:
+
+1. Run backend tests
+2. Run frontend tests
+3. Run type checking
+4. Run lint
+5. Build React
+6. Package Django
+7. Build Tauri
+8. Build Windows installer
+9. Run smoke tests
+10. Generate release version
+
+Do not claim production-ready if tests fail.
+
+---
+
+# 19. RELEASE CHECKLIST
+
+Create a production checklist covering:
+
+* version
+* database migration
+* backup
+* restore
+* tests
+* installer
+* printing
+* search
+* billing
+* inventory
+* analytics
+* reports
+
+---
+
+# 20. FINAL DOCUMENTATION
+
+At the end provide:
+
+1. Production architecture
+2. Database architecture
+3. Backup architecture
+4. Restore procedure
+5. Upgrade procedure
+6. Disaster recovery procedure
+7. Windows build procedure
+8. Installer procedure
+9. Data locations
+10. Troubleshooting guide
+11. Test results
+12. Known limitations
+
+The final application must be safe to hand over to a shop owner.
+
+Do not introduce unnecessary complexity.
+
+Prioritize reliability, maintainability and data safety over adding more features.

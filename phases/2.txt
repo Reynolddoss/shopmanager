@@ -1,0 +1,487 @@
+# MM Electricals — Phase 2
+
+## Inventory, Batch Pricing & Smart Product Finder
+
+The MM Electricals Phase 1 foundation has already been implemented.
+
+First inspect the existing repository and architecture.
+
+Do NOT rewrite the foundation.
+
+This phase is:
+
+**PHASE 2 — INVENTORY MANAGEMENT, BATCH PRICING AND SMART PRODUCT FINDER**
+
+Do not implement the complete Sales/Purchase transaction workflow yet.
+
+---
+
+# 1. PRIMARY GOAL
+
+Build a highly usable inventory system for an electrical shop.
+
+The inventory system should not merely show stock.
+
+It should help the owner answer:
+
+* What products do I have?
+* How much stock do I have?
+* What did I pay for it?
+* Which vendor supplied it?
+* What did I pay last time?
+* What was my best purchase price?
+* What selling price did I use?
+* What is the minimum safe selling price?
+* How much discount can I safely give?
+* Is this a new or previous batch?
+* Which vendor is better?
+* Which products are low stock?
+* Which products are not moving?
+
+---
+
+# 2. PRODUCT MANAGEMENT
+
+Implement:
+
+* product list
+* create product
+* edit product
+* product details
+* activate/deactivate product
+* categories
+* subcategories
+* brands
+* units
+* tags
+* aliases
+* SKU
+* barcode
+* HSN
+* GST rate
+* storage location
+
+Use pagination and server-side filtering.
+
+The application should comfortably support at least 50,000 products.
+
+---
+
+# 3. SMART PRODUCT FINDER
+
+Build a global product search system.
+
+The owner should be able to search using:
+
+* partial product name
+* letters
+* SKU
+* barcode
+* brand
+* category
+* subcategory
+* specification
+* model
+* HSN
+* vendor
+* vendor SKU
+* aliases
+* tags
+
+Examples:
+
+"2.5"
+
+"2.5 wire"
+
+"polycab"
+
+"fan 1200"
+
+"mcb 16"
+
+"anchor switch"
+
+"house wire"
+
+Search should tolerate partial terms.
+
+The search must be fast.
+
+Do not load all products into the browser.
+
+Use backend search with appropriate indexes/query optimization.
+
+---
+
+# 4. SEARCH RESULTS
+
+Search results should be useful, not just a basic table.
+
+Each result should be able to show:
+
+* product
+* brand
+* specification
+* current stock
+* current/active batch
+* purchase cost
+* selling price
+* safe selling price
+* maximum discount
+* preferred vendor
+* last purchase price
+* lowest historical purchase price
+
+Provide quick actions:
+
+* View product
+* Add to sale
+* View price history
+* View vendors
+* View stock
+* Adjust stock
+
+---
+
+# 5. PRODUCT DETAIL PAGE
+
+Create a premium product detail page.
+
+Sections:
+
+Overview
+Stock
+Pricing
+Vendors
+Purchase History
+Batch History
+Price History
+Sales History
+Analytics
+
+Pricing section should show:
+
+* MRP
+* selling price
+* safe selling price
+* maximum discount
+* current cost
+* effective margin
+* margin percentage
+
+---
+
+# 6. INVENTORY BATCHES
+
+Implement the batch architecture designed in Phase 1.
+
+Every purchase that creates new stock must be capable of creating a batch.
+
+A batch should record:
+
+* product
+* vendor
+* purchase date
+* invoice/reference
+* quantity purchased
+* remaining quantity
+* purchase price
+* supplier discount
+* effective cost
+* MRP
+* selling price
+* safe selling price
+* maximum discount
+* notes
+
+Do not overwrite old batches.
+
+---
+
+# 7. NEW BATCH ENTRY
+
+When an existing product is purchased again:
+
+Detect the previous batch.
+
+Show a compact notification:
+
+"Previous batch detected."
+
+Show:
+
+Previous batch:
+
+* vendor
+* date
+* purchase cost
+* selling price
+* safe selling price
+* maximum discount
+* remaining stock
+
+New batch:
+
+* purchase cost
+
+Calculate:
+
+* cost difference
+* percentage change
+* selling-price difference
+* safe-price difference
+
+Example:
+
+Previous cost: ₹1,450
+New cost: ₹1,580
+Increase: ₹130
+Increase %: 8.97%
+
+---
+
+# 8. OWNER-CONTROLLED PRICING
+
+When entering a new batch, allow the owner to choose:
+
+1. Use previous pricing
+2. Copy previous pricing and edit
+3. Set completely new pricing
+
+The application must NEVER silently change the owner's pricing.
+
+The owner must explicitly confirm pricing.
+
+---
+
+# 9. PURCHASE ENTRY PRICING FIELDS
+
+The inventory/batch entry interface should capture:
+
+Purchase price
+Supplier discount %
+Supplier discount amount
+Effective purchase cost
+
+MRP
+Selling price
+Minimum safe selling price
+Maximum customer discount
+
+Optional:
+
+Bulk selling price
+Customer-type pricing
+Notes
+
+Calculate and display:
+
+* gross margin
+* margin percentage
+* discount impact
+
+before saving.
+
+---
+
+# 10. SAFE SELLING PRICE
+
+Safe selling price is explicitly entered or approved by the owner.
+
+It must NOT be automatically imposed by the software.
+
+The application can provide calculations/recommendations, but the owner controls the final value.
+
+The value must be stored with the batch.
+
+---
+
+# 11. BATCH PRICE HISTORY
+
+Build a complete history.
+
+Example:
+
+Product:
+Polycab 2.5 sq mm wire
+
+Batch #001
+Cost ₹1,450
+Selling ₹1,900
+Safe ₹1,750
+Stock 4
+
+Batch #002
+Cost ₹1,580
+Selling ₹2,050
+Safe ₹1,850
+Stock 20
+
+Never overwrite Batch #001 when Batch #002 is created.
+
+---
+
+# 12. STOCK MOVEMENTS
+
+Implement:
+
+* opening stock
+* stock adjustment in
+* stock adjustment out
+* damage
+* stock transfer architecture if needed later
+
+Every stock change must create a movement.
+
+Show:
+
+* previous quantity
+* movement quantity
+* resulting quantity
+* movement type
+* date/time
+* reason
+* reference
+
+Use transactions.
+
+---
+
+# 13. LOW STOCK
+
+Support:
+
+* minimum stock
+* maximum stock
+* reorder level
+
+Provide:
+
+* low-stock indicator
+* out-of-stock indicator
+* stock health filter
+
+---
+
+# 14. VENDOR-PRODUCT PAGE
+
+For each product, show all vendors.
+
+Example:
+
+Product:
+2.5 sq mm wire
+
+Vendor A:
+Last cost ₹1,580
+Best cost ₹1,450
+Last purchase 24-Aug
+
+Vendor B:
+Last cost ₹1,610
+Best cost ₹1,480
+Last purchase 18-Aug
+
+Vendor C:
+Last cost ₹1,590
+Best cost ₹1,470
+Last purchase 12-Aug
+
+The historical purchase records must remain authoritative.
+
+---
+
+# 15. INVENTORY VALUATION
+
+Create inventory calculations using the selected valuation approach.
+
+Do not hard-code one valuation method throughout the application.
+
+Create a service architecture so FIFO/weighted-average/etc. can be supported.
+
+For the initial implementation, document which valuation method is being used.
+
+---
+
+# 16. PREMIUM UI
+
+The Inventory screen should be one of the best screens in the application.
+
+Provide:
+
+* global search
+* filters
+* category filters
+* brand filters
+* vendor filters
+* stock status
+* price range
+* quick actions
+* keyboard navigation
+
+Product search should feel instantaneous.
+
+Use drawers/modals only when they improve workflow.
+
+Avoid excessive popups.
+
+---
+
+# 17. TESTING
+
+Test:
+
+* product creation
+* duplicate SKU
+* barcode lookup
+* alias search
+* category search
+* brand search
+* partial search
+* stock adjustment
+* batch creation
+* previous batch detection
+* price history
+* vendor relationship
+* safe selling price
+* discount limits
+* transaction rollback
+* low stock
+* out-of-stock
+
+Also test with a large dataset.
+
+---
+
+# 18. DEFINITION OF DONE
+
+Phase 2 is complete only when:
+
+* inventory works
+* batches work
+* historical prices are preserved
+* vendor relationships work
+* Smart Product Finder works
+* previous-batch notification works
+* owner can copy/edit previous pricing
+* safe selling price is stored
+* discount limits are stored
+* stock movements work
+* tests pass
+* frontend type checks pass
+* lint passes
+
+Do not implement the complete sales/purchase billing workflow yet.
+
+At the end provide:
+
+1. Feature summary
+2. Database changes
+3. APIs
+4. Search architecture
+5. Batch architecture
+6. Pricing architecture
+7. Tests performed
+8. Known limitations
+9. Phase 3 recommendations

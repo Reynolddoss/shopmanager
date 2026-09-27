@@ -1,0 +1,269 @@
+@import "tailwindcss";
+
+/*
+ * Shop UI themes. Default is midnight (darker) because light paper washes out
+ * long counter sessions. Shops can switch in Settings; data-theme is applied
+ * on <html> by ThemeProvider.
+ */
+
+:root,
+[data-theme="midnight"] {
+  color-scheme: dark;
+  --ink: #e8eaef;
+  --muted: #9aa3b2;
+  --line: #2a3140;
+  --paper: #12151c;
+  --panel: #1a1f2a;
+  --accent: #3d9b8f;
+  --accent-soft: #243832;
+  --danger: #e06b6b;
+  --profit: #6bcf8e;
+  --discount: #6bcf8e;
+  --warn-bg: #3a2e14;
+  --warn-line: #8a6a22;
+  --warn-ink: #f0d58a;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 12px 28px rgba(0, 0, 0, 0.28);
+  --on-accent: #0b1210;
+  --btn-face: color-mix(in srgb, var(--panel) 88%, var(--ink) 12%);
+  --btn-face-hover: color-mix(in srgb, var(--panel) 72%, var(--ink) 28%);
+  --btn-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 1px 2px rgba(0, 0, 0, 0.35), 0 4px 10px rgba(0, 0, 0, 0.2);
+  --btn-shadow-primary: 0 1px 0 rgba(255, 255, 255, 0.18) inset, 0 1px 2px rgba(0, 0, 0, 0.35), 0 6px 14px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+[data-theme="slate"] {
+  color-scheme: dark;
+  --ink: #e6eef8;
+  --muted: #8fa0b5;
+  --line: #2c3a4d;
+  --paper: #0f1722;
+  --panel: #162032;
+  --accent: #5b8def;
+  --accent-soft: #1c2c48;
+  --danger: #ef7a7a;
+  --profit: #6bcf8e;
+  --discount: #6bcf8e;
+  --warn-bg: #332914;
+  --warn-line: #8a6a22;
+  --warn-ink: #f0d58a;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 12px 28px rgba(0, 0, 0, 0.32);
+  --on-accent: #081018;
+  --btn-face: color-mix(in srgb, var(--panel) 88%, var(--ink) 12%);
+  --btn-face-hover: color-mix(in srgb, var(--panel) 72%, var(--ink) 28%);
+  --btn-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 10px rgba(0, 0, 0, 0.25);
+  --btn-shadow-primary: 0 1px 0 rgba(255, 255, 255, 0.2) inset, 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 14px color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+[data-theme="paper"] {
+  color-scheme: light;
+  --ink: #1a1d23;
+  --muted: #5c6370;
+  --line: #e6e8ee;
+  --paper: #f6f5f1;
+  --panel: #ffffff;
+  --accent: #1f4e46;
+  --accent-soft: #e8f0ee;
+  --danger: #9b2c2c;
+  --profit: #1f7a4d;
+  --discount: #1f7a4d;
+  --warn-bg: #fff8e8;
+  --warn-line: #e0c060;
+  --warn-ink: #5c4810;
+  --shadow: 0 1px 2px rgba(26, 29, 35, 0.06), 0 8px 24px rgba(26, 29, 35, 0.04);
+  --on-accent: #ffffff;
+  --btn-face: #f3f4f7;
+  --btn-face-hover: #e8eaef;
+  --btn-shadow: 0 1px 0 #fff inset, 0 1px 2px rgba(26, 29, 35, 0.08), 0 3px 8px rgba(26, 29, 35, 0.06);
+  --btn-shadow-primary: 0 1px 0 rgba(255, 255, 255, 0.25) inset, 0 1px 2px rgba(26, 29, 35, 0.12), 0 6px 14px color-mix(in srgb, var(--accent) 28%, transparent);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+body {
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Times New Roman", serif;
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: "Segoe UI", system-ui, sans-serif;
+  color: var(--ink);
+  background-color: var(--panel);
+  border-color: var(--line);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--muted);
+}
+
+/*
+ * Global button chrome — every <button> should read as a control, not plain text.
+ * Tailwind classes (accent fill, height, padding) still layer on top.
+ */
+button {
+  cursor: pointer;
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  box-sizing: border-box;
+  border: 1px solid var(--line);
+  border-radius: 0.55rem;
+  min-height: 2.35rem;
+  padding: 0.45rem 0.95rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+  background-color: var(--btn-face);
+  color: var(--ink);
+  box-shadow: var(--btn-shadow);
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    box-shadow 120ms ease,
+    transform 80ms ease,
+    opacity 120ms ease,
+    color 120ms ease;
+}
+
+button:hover:not(:disabled) {
+  background-color: var(--btn-face-hover);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+}
+
+button:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2) inset;
+}
+
+button:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 70%, transparent);
+  outline-offset: 2px;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  box-shadow: none;
+}
+
+/* Primary / accent actions — filled teal/blue/green buttons */
+button[class*="bg-[var(--accent)]"] {
+  background-color: var(--accent) !important;
+  color: var(--on-accent) !important;
+  border-color: color-mix(in srgb, var(--accent) 70%, #000) !important;
+  box-shadow: var(--btn-shadow-primary);
+}
+
+button[class*="bg-[var(--accent)]"]:hover:not(:disabled) {
+  filter: brightness(1.08);
+  background-color: var(--accent) !important;
+}
+
+button[class*="bg-[var(--accent)]"]:active:not(:disabled) {
+  filter: brightness(0.96);
+  transform: translateY(1px);
+}
+
+/* Soft / selected chips that use accent-soft stay quieter */
+button[class*="bg-[var(--accent-soft)]"] {
+  background-color: var(--accent-soft) !important;
+  color: var(--accent) !important;
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--line)) !important;
+  box-shadow: none;
+}
+
+/* Tiny icon / remove chips — keep compact */
+button[aria-label^="Remove"],
+button.tag-remove {
+  min-height: 1.25rem;
+  padding: 0.05rem 0.35rem;
+  border-radius: 0.35rem;
+  box-shadow: none;
+  font-weight: 700;
+}
+
+/* Surfaces that previously hard-coded white follow the active theme panel. */
+.bg-white {
+  background-color: var(--panel) !important;
+}
+
+.text-white {
+  color: var(--on-accent) !important;
+}
+
+/*
+ * Money figures on bills / history — tabular, role-colored so totals and
+ * discounts read at a glance next to quieter labels.
+ */
+.money {
+  font-family: "Segoe UI", system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  letter-spacing: 0.01em;
+}
+
+.money-subtotal {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.money-line {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.money-discount {
+  font-weight: 700;
+  color: var(--discount);
+}
+
+.money-discount-zero {
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.money-total {
+  font-weight: 800;
+  font-size: 1.125rem;
+  line-height: 1.2;
+  color: var(--ink);
+}
+
+.money-paid {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.money-due {
+  font-weight: 700;
+  color: var(--danger);
+}
+
+.money-due-clear {
+  font-weight: 700;
+  color: var(--profit);
+}
+
+.money-change {
+  font-weight: 700;
+  color: var(--profit);
+}
+
+.money-bill-row {
+  margin-top: 0.35rem;
+  padding-top: 0.55rem;
+  border-top: 1px solid var(--line);
+}

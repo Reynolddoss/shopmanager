@@ -1,0 +1,319 @@
+# MM Electricals — Phase 4
+
+## Analytics, Business Intelligence & Owner Dashboard
+
+The MM Electricals application now has:
+
+* products
+* vendors
+* customers
+* batches
+* inventory
+* purchases
+* sales
+* payments
+* expenses
+* pricing history
+
+Do not rewrite existing functionality.
+
+This phase focuses on:
+
+**ANALYTICS AND OWNER INTELLIGENCE**
+
+---
+
+# 1. ANALYTICS PAGE
+
+Create a dedicated premium Analytics page.
+
+Do not simply put a few charts on the dashboard.
+
+Analytics should provide actionable business information.
+
+---
+
+# 2. SALES ANALYTICS
+
+Show:
+
+* daily sales
+* weekly sales
+* monthly sales
+* yearly sales
+* sales growth
+* average bill value
+* number of invoices
+* top-selling products
+* top-selling brands
+* top-selling categories
+* top customers
+
+Allow:
+
+* date range
+* category filter
+* brand filter
+* vendor filter
+* customer filter
+
+---
+
+# 3. PROFIT ANALYTICS
+
+Show:
+
+* gross sales
+* discounts
+* cost of goods
+* gross profit
+* gross margin %
+* profit by product
+* profit by category
+* profit by brand
+
+Important:
+
+Use actual historical batch cost where appropriate.
+
+Do not simply calculate:
+
+sales - current product cost
+
+because historical costs can differ between batches.
+
+---
+
+# 4. INVENTORY ANALYTICS
+
+Show:
+
+* current stock quantity
+* stock valuation
+* low stock
+* out of stock
+* fast-moving products
+* slow-moving products
+* dead stock
+* stock age
+* stock turnover
+
+Allow drill-down into products.
+
+---
+
+# 5. PURCHASE ANALYTICS
+
+Show:
+
+* total purchases
+* purchase trend
+* spending by vendor
+* spending by category
+* spending by brand
+* most purchased products
+* purchase frequency
+
+---
+
+# 6. VENDOR ANALYTICS
+
+For each vendor show:
+
+* total purchases
+* number of products supplied
+* average purchase price
+* best historical price
+* last purchase price
+* purchase frequency
+* outstanding amount
+
+Allow product-level vendor comparison.
+
+Example:
+
+Product: 2.5 sq mm wire
+
+Vendor A:
+Average ₹1,500
+Best ₹1,450
+
+Vendor B:
+Average ₹1,530
+Best ₹1,480
+
+Vendor C:
+Average ₹1,510
+Best ₹1,460
+
+---
+
+# 7. PRICE HISTORY ANALYTICS
+
+For each product show purchase price history.
+
+Example:
+
+₹1,450 → ₹1,480 → ₹1,520 → ₹1,580
+
+Show:
+
+* absolute increase
+* percentage increase
+* vendor responsible
+* date
+* batch
+
+This should help the owner understand supplier price trends.
+
+---
+
+# 8. BATCH ANALYTICS
+
+Show:
+
+* active batches
+* remaining quantity per batch
+* batch cost
+* batch selling price
+* safe selling price
+* margin
+* age of stock
+
+If multiple batches exist for a product, show a comparison.
+
+---
+
+# 9. DISCOUNT ANALYTICS
+
+Track:
+
+* average discount given
+* discount by product
+* discount by customer type
+* discount by customer
+* discount impact on profit
+* number of safe-price overrides
+
+Identify products where excessive discounts are reducing margin.
+
+---
+
+# 10. CUSTOMER ANALYTICS
+
+Show:
+
+* top customers
+* customer purchase value
+* outstanding
+* payment behavior
+* credit utilization
+* customer type performance
+
+---
+
+# 11. EXPENSE ANALYTICS
+
+Show:
+
+* total expenses
+* expense by category
+* monthly expense trend
+* largest expense categories
+
+---
+
+# 12. DASHBOARD
+
+Create a concise owner dashboard.
+
+Prioritize:
+
+Today's sales
+Today's profit
+Today's purchases
+Outstanding receivables
+Outstanding payables
+Current stock value
+Low stock
+Top products
+Recent sales
+Important price alerts
+
+Avoid visual clutter.
+
+---
+
+# 13. ALERTS / INSIGHTS
+
+Create an extensible insight system.
+
+Examples:
+
+"2.5 sq mm wire purchase cost increased 9%."
+
+"Polycab products generated 24% of gross profit this month."
+
+"12 products are below reorder level."
+
+"₹38,000 is outstanding from customers."
+
+"15 products have had no sales in 90 days."
+
+"Vendor ABC is currently offering the lowest recorded price for 2.5 sq mm wire."
+
+Do not make unsupported predictions.
+
+Insights must be derived from actual stored data.
+
+---
+
+# 14. EXPORT
+
+Analytics and reports should support:
+
+* CSV export
+* print
+* PDF where appropriate
+
+---
+
+# 15. PERFORMANCE
+
+Analytics must not cause the application to become slow.
+
+Use:
+
+* optimized queries
+* aggregation
+* indexes
+* pagination
+* caching where appropriate
+
+Do not calculate large datasets repeatedly in React.
+
+---
+
+# 16. TESTING
+
+Create tests for:
+
+* sales totals
+* profit calculations
+* batch cost calculations
+* vendor comparisons
+* inventory valuation
+* customer balances
+* discount analytics
+* date filters
+
+Verify analytics against known sample data.
+
+At the end provide:
+
+* analytics architecture
+* calculation definitions
+* queries/aggregation strategy
+* tests
+* known limitations
+* Phase 5 production checklist

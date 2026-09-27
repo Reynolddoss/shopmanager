@@ -1,0 +1,370 @@
+# MM Electricals — Phase 3
+
+## Purchases, Sales, Customers, Vendors, Payments & Credit
+
+The MM Electricals Phase 1 and Phase 2 systems are implemented.
+
+Inspect the existing code before changing anything.
+
+Do NOT rewrite working architecture.
+
+This phase is:
+
+**PHASE 3 — TRANSACTION MANAGEMENT**
+
+---
+
+# 1. PURCHASES
+
+Implement complete purchase management.
+
+Purchase header:
+
+* vendor
+* invoice number
+* invoice date
+* payment terms
+* notes
+
+Purchase items:
+
+* product
+* batch
+* quantity
+* purchase price
+* supplier discount
+* effective cost
+* MRP
+* selling price
+* safe selling price
+* maximum discount
+
+Purchase totals:
+
+* subtotal
+* discount
+* taxable amount
+* GST
+* other charges
+* grand total
+
+---
+
+# 2. PURCHASE TRANSACTION SAFETY
+
+A purchase must be atomic.
+
+The complete transaction must:
+
+1. Validate vendor
+2. Validate products
+3. Validate quantities
+4. Validate prices
+5. Create purchase
+6. Create purchase items
+7. Create batches
+8. Increase stock
+9. Create stock movements
+10. Record payment if applicable
+11. Update vendor balance
+12. Commit
+
+If any step fails:
+
+ROLLBACK EVERYTHING.
+
+---
+
+# 3. PREVIOUS BATCH WORKFLOW
+
+During purchase entry for an existing product:
+
+Show previous batch information.
+
+Provide:
+
+* Use previous pricing
+* Copy previous pricing and edit
+* Set new pricing
+
+Show cost change warning.
+
+Do not silently modify old batch pricing.
+
+---
+
+# 4. SALES / BILLING
+
+Build a fast sales workflow.
+
+The owner should be able to:
+
+1. Search product
+2. Select product
+3. Add quantity
+4. Apply discount
+5. See price/margin warning
+6. Select customer
+7. Select payment method
+8. Complete sale
+
+Support:
+
+* cash
+* UPI
+* card
+* bank transfer
+* credit
+* partial payment
+
+---
+
+# 5. SAFE PRICE WARNING
+
+During sale, if the final selling price falls below the batch's configured safe selling price:
+
+Show:
+
+"Below Safe Selling Price"
+
+Display:
+
+* batch cost
+* configured selling price
+* safe selling price
+* requested discount
+* resulting price
+* margin
+
+Allow owner override.
+
+Do not hard-block unless a future setting explicitly enables hard enforcement.
+
+Record overrides in the audit log.
+
+---
+
+# 6. CUSTOMER MASTER
+
+Implement:
+
+* create customer
+* edit customer
+* deactivate customer
+* search customer
+* customer details
+* phone
+* address
+* GSTIN
+* customer type
+* credit limit
+* opening balance
+
+Customers must remain available for future use.
+
+---
+
+# 7. VENDOR MASTER
+
+Implement:
+
+* create vendor
+* edit vendor
+* deactivate vendor
+* search vendor
+* vendor details
+* contact details
+* GSTIN
+* payment terms
+* supplied products
+* purchase history
+* outstanding balance
+
+Vendors must remain available for future use.
+
+---
+
+# 8. SALES TRANSACTION
+
+A sale must atomically:
+
+1. Validate customer
+2. Validate product
+3. Determine applicable batch/stock
+4. Validate quantity
+5. Calculate pricing
+6. Calculate discount
+7. Calculate GST
+8. Create sale
+9. Create sale items
+10. Reduce stock
+11. Create stock movement
+12. Record payment
+13. Update customer ledger
+14. Commit
+
+If anything fails:
+
+ROLLBACK EVERYTHING.
+
+---
+
+# 9. RETURNS
+
+Implement:
+
+* sales return architecture
+* purchase return architecture
+
+Returns must:
+
+* update stock correctly
+* create stock movements
+* update customer/vendor balance
+* preserve original transaction references
+
+Do not delete the original sale/purchase.
+
+---
+
+# 10. PAYMENTS
+
+Implement:
+
+Customer payments
+Supplier payments
+
+Support:
+
+* amount
+* date
+* method
+* reference
+* notes
+
+Maintain ledgers.
+
+---
+
+# 11. CUSTOMER LEDGER
+
+Show:
+
+Opening balance
+Sales
+Returns
+Payments
+Adjustments
+Closing balance
+
+Include date filters and transaction drill-down.
+
+---
+
+# 12. VENDOR LEDGER
+
+Show:
+
+Opening balance
+Purchases
+Returns
+Payments
+Adjustments
+Closing balance
+
+---
+
+# 13. INVOICE
+
+Create professional invoices.
+
+Support:
+
+* shop information
+* invoice number
+* date
+* customer
+* GSTIN
+* items
+* quantity
+* rate
+* discount
+* GST
+* total
+* payment status
+
+Design the invoice so both A4 and thermal-print layouts can be supported later.
+
+---
+
+# 14. INVOICE NUMBERING
+
+Create a configurable invoice numbering service.
+
+Do not generate invoice numbers in React.
+
+Support:
+
+* prefix
+* sequence
+* financial year if configured
+* no accidental duplicate numbers
+
+---
+
+# 15. QUICK SELL
+
+The sales interface must prioritize speed.
+
+Global search:
+
+"2.5 wire"
+
+Then product results should immediately provide:
+
+* stock
+* selling price
+* safe price
+* discount limit
+* brand
+* batch information
+
+Provide:
+
+ADD TO BILL
+
+Use keyboard-friendly workflow.
+
+---
+
+# 16. TESTING
+
+Test:
+
+* purchase
+* purchase rollback
+* new batch
+* previous batch
+* sale
+* sale rollback
+* partial payment
+* credit sale
+* customer balance
+* vendor balance
+* sales return
+* purchase return
+* safe-price warning
+* discount override
+* invoice numbering
+* stock synchronization
+
+All tests must pass before completion.
+
+At the end provide:
+
+* transaction flow diagrams
+* API list
+* database changes
+* tests
+* known limitations
+* Phase 4 recommendations
