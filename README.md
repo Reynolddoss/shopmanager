@@ -43,6 +43,18 @@ npm run tauri dev
 cd frontend && npm run build && npm run lint
 ```
 
+## Run on a Windows shop PC (Docker)
+
+This is a double-click start. No Setup.exe.
+
+1. Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) once, and leave it running.
+2. Copy this project folder onto the PC.
+3. Double-click `scripts\startShop.bat`.
+
+The first start builds the app and can take several minutes. The shop then opens in the browser at http://127.0.0.1:8000/. Double-click `scripts\stopShop.bat` to stop it. Bills, stock, photos, and backups stay in the Docker volume `mm-electricals-shop-data`.
+
+The same start from a terminal is `docker compose up -d --build`.
+
 ## Production (Windows installer)
 
 You need a **Windows Setup.exe** to share with shop PCs. That file is built on Windows

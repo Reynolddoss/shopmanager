@@ -24,11 +24,17 @@ class LauncherArguments:
 
     def __init__(self, argv: list[str]) -> None:
         parser = argparse.ArgumentParser(prog="mm-electricals-api")
-        parser.add_argument("--port", type=int, default=self.DEFAULT_PORT, help="Loopback port to serve on.")
+        parser.add_argument("--port", type=int, default=self.DEFAULT_PORT, help="Port to serve on.")
+        parser.add_argument(
+            "--host",
+            default="127.0.0.1",
+            help="Address to listen on. The desktop app stays on loopback. Docker uses 0.0.0.0 inside the container.",
+        )
         parser.add_argument("--data-dir", default=None, help="Override the shop data folder.")
         parser.add_argument("--console", action="store_true", help="Log to this console instead of logs/api.log.")
         parsed = parser.parse_args(argv)
         self.port: int = parsed.port
+        self.host: str = parsed.host
         self.data_dir: str | None = parsed.data_dir
         self.console: bool = parsed.console
 
@@ -150,7 +156,7 @@ class PackagedApiLauncher:
         data_dir.mkdir(parents=True, exist_ok=True)
         if not self.args.console:
             ApiLogFile(data_dir / "logs").attach()
-        print(f"--- MM Electricals API starting (port {self.args.port}, data {data_dir}) ---", flush=True)
+        print(f"--- MM Electricals API starting ({self.args.host}:{self.args.port}, data {data_dir}) ---", flush=True)
         self.start_watchdog()
         try:
             self.prepare_environment(data_dir)
@@ -165,7 +171,7 @@ class PackagedApiLauncher:
 
             from config.wsgi import application
 
-            serve(application, host="127.0.0.1", port=self.args.port, threads=self.WAITRESS_THREADS)
+            serve(application, host=self.args.host, port=self.args.port, threads=self.WAITRESS_THREADS)
             return 0
         except Exception:
             traceback.print_exc()

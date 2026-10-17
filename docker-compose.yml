@@ -1,0 +1,20 @@
+# One shop on this PC. Other computers on the network cannot open it.
+# Bills, stock, and photos live in the mm-electricals-shop-data volume.
+
+name: mm-electricals
+
+services:
+  shop:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mm-electricals:local
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - shop-data:/data
+    restart: unless-stopped
+
+volumes:
+  shop-data:
+    name: mm-electricals-shop-data

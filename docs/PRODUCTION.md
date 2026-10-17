@@ -1,5 +1,11 @@
 # Production operations — MM Electricals Phase 5
 
+## Docker on a Windows shop PC
+
+Double-click `scripts\startShop.bat` after Docker Desktop is installed and running. That builds the image, starts it, and opens http://127.0.0.1:8000/. `scripts\stopShop.bat` stops the container and keeps the `mm-electricals-shop-data` volume (SQLite, photos, backups, secret key).
+
+Inside the container Waitress listens on all interfaces so Docker can forward the port. The published port is `127.0.0.1:8000` on the PC, so other computers on the network cannot open the shop. `LoopbackOnlyMiddleware` still rejects a request whose Host is not this computer.
+
 ## Production architecture
 
 Django owns SQLite; the UI never opens the database file. In development, Vite (`:5173`) proxies `/api` and `/media` to `runserver` (`:8000`).

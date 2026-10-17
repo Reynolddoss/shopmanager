@@ -1,0 +1,16 @@
+.git
+.venv
+**/__pycache__
+**/*.pyc
+**/.DS_Store
+frontend/node_modules
+frontend/dist
+desktop/node_modules
+desktop/src-tauri/target
+desktop/src-tauri/api-bundle
+desktop/src-tauri/gen
+backend/data
+backend/dist
+backend/build
+backend/.venv
+*.sqlite3
