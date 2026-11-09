@@ -101,12 +101,13 @@ Both builds use the same app code, migrations, splash page and data folder (`%LO
 Build it from GitHub Actions (**Build Windows installer** → artifact **MM-Electricals-Windows7-Setup**), or on a Windows PC with Python 3.8.10 and Node 22:
 
 ```
+powershell -File scripts\win7-sqlite.ps1 -Python (py -3.8 -c "import sys; print(sys.executable)")
 py -3.8 -m venv .venv-win7
 .venv-win7\Scripts\pip install -r backend\requirements-win7.txt pyinstaller
 scripts\buildSoftware.bat --target win7
 ```
 
-The script refuses to build `--target win7` with any Python other than 3.8. The Windows 7 PC needs Windows 7 SP1 with the Universal C Runtime update (KB2999226), and the build is 64-bit only.
+The script refuses to build `--target win7` with any Python other than 3.8, or with an SQLite that lacks the JSON functions. python.org's Python 3.8 for Windows ships SQLite without them, and Django's `JSONField` fails with "no such function: JSON_VALID". `scripts\win7-sqlite.ps1` replaces that Python's `sqlite3.dll` with the official sqlite.org 3.46.1 DLL (checksum-verified; it needs only `KERNEL32` and runs on Windows 7), and PyInstaller bundles it into the installer. The Windows 7 PC needs Windows 7 SP1 with the Universal C Runtime update (KB2999226), and the build is 64-bit only.
 
 Keeping `main` Windows 7 compatible: the **Windows 7 compatibility** workflow runs the tests on Python 3.8 + Django 4.2 for every push. Don't use Python 3.9+ features or Django 5-only APIs in app code, and avoid CSS colours that only modern Chromium supports (Electron 22 is Chromium 108; Tailwind's built-in palette uses `oklch()`).
 

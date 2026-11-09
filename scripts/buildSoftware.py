@@ -140,6 +140,17 @@ class SoftwareBuilder:
                 f"--target win7 needs Python {wanted} (found {version or 'none'} at {self.python}). "
                 f"Create .venv-win7 with Python 3.8.10 and install backend/requirements-win7.txt into it."
             )
+        # python.org's 3.8 for Windows ships SQLite without JSON1, which Django's JSONField needs.
+        json_probe = subprocess.run(
+            [str(self.python), "-c", "import sqlite3; sqlite3.connect(':memory:').execute('select json_valid(1)')"],
+            capture_output=True,
+            check=False,
+        )
+        if json_probe.returncode != 0:
+            raise RuntimeError(
+                f"The SQLite in {self.python} has no JSON functions (Django needs JSON_VALID). "
+                f"Run: powershell -File scripts\\win7-sqlite.ps1 -Python {self.python}"
+            )
 
     def run_backend_tests(self) -> None:
         print("==> Backend tests")

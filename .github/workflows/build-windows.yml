@@ -105,6 +105,10 @@ jobs:
             frontend/package-lock.json
             desktop-win7/package-lock.json
 
+      - name: Give Python 3.8 an SQLite with JSON support
+        shell: pwsh
+        run: ./scripts/win7-sqlite.ps1 -Python python
+
       - name: Install Python packages
         shell: pwsh
         run: |
