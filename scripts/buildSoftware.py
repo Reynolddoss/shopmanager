@@ -12,10 +12,15 @@ On Windows this script:
 On macOS/Linux it runs steps 1-2 and prints how to get a Windows build.
 `--api-only` runs steps 1-5 on any OS to check the frozen API locally.
 
+`--target win7` builds for Windows 7 instead: the API is frozen with Python
+3.8 (backend/requirements-win7.txt) and the installer is the Electron 22
+shell in desktop-win7/ rather than Tauri, which needs Windows 10+.
+
 Usage:
   python scripts/buildSoftware.py
   python scripts/buildSoftware.py --skip-tests
   python scripts/buildSoftware.py --api-only
+  python scripts/buildSoftware.py --target win7   (run with Python 3.8)
   scripts\\buildSoftware.bat          (Windows double-click / cmd)
   ./scripts/buildSoftware.sh          (macOS/Linux)
 """
@@ -42,16 +47,23 @@ class SoftwareBuilder:
 
     API_NAME = "mm-electricals-api"
     SMOKE_TIMEOUT_SECONDS = 120
+    TARGETS = ("win10", "win7")
+    # Last Python that runs on Windows 7; its DLLs are what PyInstaller bundles.
+    WIN7_PYTHON = (3, 8)
 
-    def __init__(self, *, skip_tests: bool = False, api_only: bool = False) -> None:
+    def __init__(self, *, skip_tests: bool = False, api_only: bool = False, target: str = "win10") -> None:
         self.skip_tests = skip_tests
         self.api_only = api_only
+        self.target = target
+        self.is_win7 = target == "win7"
         self.root = Path(__file__).resolve().parents[1]
         self.backend = self.root / "backend"
         self.frontend = self.root / "frontend"
         self.desktop = self.root / "desktop"
         self.tauri_dir = self.desktop / "src-tauri"
-        self.api_bundle_dir = self.tauri_dir / "api-bundle"
+        self.electron_dir = self.root / "desktop-win7"
+        shell_dir = self.electron_dir if self.is_win7 else self.tauri_dir
+        self.api_bundle_dir = shell_dir / "api-bundle"
         self.pyinstaller_dist = self.backend / "dist"
         self.python = self._resolve_python()
         self.system = platform.system().lower()
@@ -66,9 +78,11 @@ class SoftwareBuilder:
         return self.frozen_api_dir / (f"{self.API_NAME}.exe" if self.is_windows else self.API_NAME)
 
     def run(self) -> int:
-        print(f"==> Shop Manager buildSoftware ({platform.system()} {platform.machine()})")
+        print(f"==> Shop Manager buildSoftware ({platform.system()} {platform.machine()}, target {self.target})")
         print(f"    root: {self.root}")
         print(f"    python: {self.python}")
+        if self.is_win7:
+            self.ensure_win7_python()
         if not self.skip_tests:
             self.run_backend_tests()
         else:
@@ -84,24 +98,48 @@ class SoftwareBuilder:
         if self.api_only:
             print(f"==> API bundle ready (--api-only): {self.frozen_api_dir}")
             return 0
-        self.ensure_tauri_tools()
-        self.build_tauri_installer()
+        if self.is_win7:
+            self.ensure_electron_tools()
+            self.build_electron_installer()
+        else:
+            self.ensure_tauri_tools()
+            self.build_tauri_installer()
         self._print_windows_outputs()
         return 0
 
     def _resolve_python(self) -> Path:
-        """Prefer project venv, then VIRTUAL_ENV, then current interpreter."""
+        """Prefer project venv, then VIRTUAL_ENV, then current interpreter (.venv-win7 first for win7)."""
         virtual_env = os.environ.get("VIRTUAL_ENV")
+        venv_names = [".venv-win7"] if self.is_win7 else [".venv"]
         candidates = [
-            self.root / ".venv" / "Scripts" / "python.exe",
-            self.root / ".venv" / "bin" / "python",
+            *[self.root / name / "Scripts" / "python.exe" for name in venv_names],
+            *[self.root / name / "bin" / "python" for name in venv_names],
             Path(virtual_env) / "Scripts" / "python.exe" if virtual_env else None,
             Path(virtual_env) / "bin" / "python" if virtual_env else None,
-            Path.home() / ".virtualenvs" / "shopmanager" / "Scripts" / "python.exe",
-            Path.home() / ".virtualenvs" / "shopmanager" / "bin" / "python",
         ]
+        if not self.is_win7:
+            candidates += [
+                Path.home() / ".virtualenvs" / "shopmanager" / "Scripts" / "python.exe",
+                Path.home() / ".virtualenvs" / "shopmanager" / "bin" / "python",
+            ]
         found = next(filter(lambda candidate: candidate is not None and candidate.exists(), candidates), None)
         return found or Path(sys.executable)
+
+    def ensure_win7_python(self) -> None:
+        """A newer Python links DLLs that Windows 7 does not have, so refuse to build with one."""
+        probe = subprocess.run(
+            [str(self.python), "-c", "import sys; print('%d.%d' % sys.version_info[:2])"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        version = probe.stdout.strip()
+        wanted = "%d.%d" % self.WIN7_PYTHON
+        if version != wanted:
+            raise RuntimeError(
+                f"--target win7 needs Python {wanted} (found {version or 'none'} at {self.python}). "
+                f"Create .venv-win7 with Python 3.8.10 and install backend/requirements-win7.txt into it."
+            )
 
     def run_backend_tests(self) -> None:
         print("==> Backend tests")
@@ -197,8 +235,8 @@ class SoftwareBuilder:
                     process.wait(timeout=15)
 
     def stage_api_bundle(self) -> None:
-        """Replace desktop/src-tauri/api-bundle with the fresh PyInstaller folder."""
-        print("==> Staging API folder into Tauri resources")
+        """Replace the shell's api-bundle folder with the fresh PyInstaller folder."""
+        print("==> Staging API folder into the desktop shell's resources")
         self.api_bundle_dir.mkdir(parents=True, exist_ok=True)
         stale = filter(lambda item: item.name != ".gitignore", self.api_bundle_dir.iterdir())
         list(map(lambda item: shutil.rmtree(item) if item.is_dir() else item.unlink(), stale))
@@ -216,6 +254,15 @@ class SoftwareBuilder:
     def build_tauri_installer(self) -> None:
         print("==> Building Tauri / NSIS installer")
         self._run([self._npm(), "run", "tauri", "--", "build"], cwd=self.desktop)
+
+    def ensure_electron_tools(self) -> None:
+        print("==> Checking Electron tools")
+        if not (self.electron_dir / "node_modules").exists():
+            self._run([self._npm(), "ci"], cwd=self.electron_dir)
+
+    def build_electron_installer(self) -> None:
+        print("==> Building Electron 22 / NSIS installer (Windows 7)")
+        self._run([self._npm(), "run", "dist"], cwd=self.electron_dir)
 
     def _free_port(self) -> int:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
@@ -277,7 +324,7 @@ class SoftwareBuilder:
         print("    To check the frozen API on this machine: python scripts/buildSoftware.py --api-only")
 
     def _print_windows_outputs(self) -> None:
-        nsis = self.tauri_dir / "target" / "release" / "bundle" / "nsis"
+        nsis = self.electron_dir / "dist" if self.is_win7 else self.tauri_dir / "target" / "release" / "bundle" / "nsis"
         print()
         print("==> Build finished.")
         list(map(lambda path: print(f"    Setup: {path}"), sorted(nsis.glob("*-setup.exe"))))
@@ -296,9 +343,15 @@ class BuildSoftwareCli:
             action="store_true",
             help="Freeze + smoke-test the API on any OS without building the installer.",
         )
+        parser.add_argument(
+            "--target",
+            choices=SoftwareBuilder.TARGETS,
+            default="win10",
+            help="win10: Tauri installer (Windows 10+). win7: Electron 22 installer, API frozen with Python 3.8.",
+        )
         args = parser.parse_args(argv)
         try:
-            return SoftwareBuilder(skip_tests=args.skip_tests, api_only=args.api_only).run()
+            return SoftwareBuilder(skip_tests=args.skip_tests, api_only=args.api_only, target=args.target).run()
         except RuntimeError as exc:
             print(f"ERROR: {exc}", file=sys.stderr)
             return 1

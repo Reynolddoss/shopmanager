@@ -1,0 +1,44 @@
+# Keeps main runnable on the Windows 7 build (Python 3.8 + Django 4.2).
+# Delete this workflow, and backend/requirements-win7.txt, once the
+# Windows 7 shop PC has been upgraded.
+
+name: Windows 7 compatibility
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  py38-django42:
+    name: Tests on Python 3.8 / Django 4.2
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Install Python 3.8 and packages
+        run: |
+          uv venv --python 3.8 .venv38
+          VIRTUAL_ENV=.venv38 uv pip install -r backend/requirements-win7.txt
+
+      - name: Code parses as Python 3.8
+        run: .venv38/bin/python -m compileall -q backend/apps backend/config backend/packaging
+
+      - name: Migrations match models under Django 4.2
+        working-directory: backend
+        env:
+          MM_DATA_DIR: ${{ runner.temp }}/mm-data
+        run: ../.venv38/bin/python manage.py makemigrations --check --dry-run
+
+      - name: Tests
+        run: .venv38/bin/python -m pytest -q

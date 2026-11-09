@@ -1,5 +1,6 @@
 # Python
 .venv/
+.venv-win7/
 __pycache__/
 *.py[cod]
 *.sqlite3
@@ -20,6 +21,9 @@ backend/build/
 # Tauri
 desktop/src-tauri/target/
 desktop/src-tauri/gen/
+
+# Electron shell (Windows 7 build)
+desktop-win7/dist/
 
 # OS / IDE
 .DS_Store

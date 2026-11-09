@@ -1,0 +1,51 @@
+{
+  "name": "mm-electricals-win7",
+  "private": true,
+  "version": "0.1.0",
+  "description": "MM Electricals desktop shell for Windows 7 (Electron 22)",
+  "author": "MM Electricals",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win nsis --x64 --publish never"
+  },
+  "devDependencies": {
+    "electron": "22.3.27",
+    "electron-builder": "24.13.3"
+  },
+  "build": {
+    "appId": "com.mmelectricals.shopmanager",
+    "productName": "MM Electricals",
+    "copyright": "MM Electricals",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "package.json",
+      {
+        "from": "../desktop/splash",
+        "to": "splash"
+      }
+    ],
+    "extraResources": [
+      {
+        "from": "api-bundle",
+        "to": "api",
+        "filter": ["**/*"]
+      }
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "../desktop/src-tauri/icons/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false,
+      "artifactName": "MM-Electricals-Win7-${version}-setup.${ext}",
+      "shortcutName": "MM Electricals"
+    }
+  }
+}

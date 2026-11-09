@@ -40,7 +40,10 @@
     </main>
     <script>
       // Ask the shell how startup is going; it navigates away by itself on success.
-      const invoke = (command) => window.__TAURI_INTERNALS__.invoke(command);
+      // Tauri (Windows 10+) and the Electron shell (desktop-win7/) both use this page.
+      const shellStatus = window.__TAURI_INTERNALS__
+        ? () => window.__TAURI_INTERNALS__.invoke("startup_status")
+        : window.mmShell && window.mmShell.startupStatus;
 
       const showFailure = (status) => {
         document.getElementById("error-message").textContent = status.message;
@@ -49,11 +52,11 @@
       };
 
       const poll = () =>
-        invoke("startup_status")
+        shellStatus()
           .then((status) => (status.failed ? showFailure(status) : setTimeout(poll, 500)))
           .catch(() => setTimeout(poll, 1000));
 
-      if (window.__TAURI_INTERNALS__) poll();
+      if (shellStatus) poll();
     </script>
   </body>
 </html>

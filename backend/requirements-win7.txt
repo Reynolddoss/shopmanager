@@ -1,0 +1,11 @@
+# Windows 7 build only. Python 3.8 is the last release that runs on Windows 7,
+# so these are the newest versions that still support it. Keep app code
+# compatible with both this file and requirements.txt until the Windows 7
+# shop PC is upgraded; then delete this file.
+Pillow==10.4.0
+Django>=4.2,<5.0
+djangorestframework>=3.15,<3.16
+django-filter>=24,<25
+waitress>=3.0,<3.1
+pytest>=8,<8.4
+pytest-django>=4.9,<4.10

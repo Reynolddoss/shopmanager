@@ -65,6 +65,10 @@ Output: `desktop\src-tauri\target\release\bundle\nsis\*-setup.exe`
 
 Shop data after install: `%LOCALAPPDATA%\MMElectricals\` (SQLite, backups, logs, photos).
 
+**Windows 7:** the normal installer needs Windows 10+. Use the Windows 7 build instead
+(artifact **MM-Electricals-Windows7-Setup**, or `scripts\buildSoftware.bat --target win7` with Python 3.8).
+See [docs/PRODUCTION.md](docs/PRODUCTION.md#windows-7-installer-temporary).
+
 To check the frozen API on a Mac/Linux machine (no installer): `python scripts/buildSoftware.py --api-only`.
 
 To preview production mode without packaging, run `npm run build` in `frontend/`, start Django, and open http://127.0.0.1:8000/. Django serves the built UI itself.

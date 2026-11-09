@@ -75,3 +75,59 @@ jobs:
           path: desktop/src-tauri/target/release/bundle/nsis/*-setup.exe
           if-no-files-found: error
           retention-days: 30
+
+  # Windows 7 installer: API frozen with Python 3.8.10 (the last python.org
+  # release for Windows 7) inside the Electron 22 shell in desktop-win7/.
+  # Delete this job once the Windows 7 shop PC has been upgraded.
+  windows7-setup:
+    name: Windows 7 Setup.exe
+    runs-on: windows-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.8
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.8.10"
+          architecture: x64
+          cache: "pip"
+          cache-dependency-path: backend/requirements-win7.txt
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: |
+            frontend/package-lock.json
+            desktop-win7/package-lock.json
+
+      - name: Install Python packages
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r backend/requirements-win7.txt
+          python -m pip install pyinstaller
+
+      - name: Install frontend deps
+        working-directory: frontend
+        run: npm ci
+
+      - name: Install desktop (Electron) deps
+        working-directory: desktop-win7
+        run: npm ci
+
+      - name: Build Windows 7 software package
+        shell: pwsh
+        run: python scripts/buildSoftware.py --target win7
+
+      - name: Upload Setup.exe
+        uses: actions/upload-artifact@v4
+        with:
+          name: MM-Electricals-Windows7-Setup
+          path: desktop-win7/dist/*-setup.exe
+          if-no-files-found: error
+          retention-days: 30

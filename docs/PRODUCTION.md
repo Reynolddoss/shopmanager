@@ -84,3 +84,30 @@ Steps:
 `python scripts/buildSoftware.py --api-only` runs steps 1–5 on macOS/Linux too.
 
 The installer is unsigned for now, so Windows SmartScreen shows "Windows protected your PC". Click **More info → Run anyway**. Code signing is a later stage.
+
+## Windows 7 installer (temporary)
+
+Tauri 2, WebView2, Python 3.9+ and Django 5 all need Windows 10 or later, so Windows 7 gets its own build target. Running the normal installer on Windows 7 fails with "The procedure entry point PackageIdFromFullName could not be located".
+
+| Part | Windows 10+ | Windows 7 |
+|---|---|---|
+| Desktop shell | Tauri 2 (`desktop/src-tauri/`) | Electron 22 (`desktop-win7/`), the last Electron for Windows 7 |
+| Python | 3.12 | 3.8.10, the last python.org release for Windows 7 |
+| Packages | `backend/requirements.txt` | `backend/requirements-win7.txt` (Django 4.2) |
+| Installer | `desktop\src-tauri\target\release\bundle\nsis\*-setup.exe` | `desktop-win7\dist\MM-Electricals-Win7-*-setup.exe` |
+
+Both builds use the same app code, migrations, splash page and data folder (`%LOCALAPPDATA%\MMElectricals\`). A Windows 7 PC that is later upgraded keeps its shop data: install the normal Setup.exe, and `safe_upgrade` applies any newer migrations.
+
+Build it from GitHub Actions (**Build Windows installer** → artifact **MM-Electricals-Windows7-Setup**), or on a Windows PC with Python 3.8.10 and Node 22:
+
+```
+py -3.8 -m venv .venv-win7
+.venv-win7\Scripts\pip install -r backend\requirements-win7.txt pyinstaller
+scripts\buildSoftware.bat --target win7
+```
+
+The script refuses to build `--target win7` with any Python other than 3.8. The Windows 7 PC needs Windows 7 SP1 with the Universal C Runtime update (KB2999226), and the build is 64-bit only.
+
+Keeping `main` Windows 7 compatible: the **Windows 7 compatibility** workflow runs the tests on Python 3.8 + Django 4.2 for every push. Don't use Python 3.9+ features or Django 5-only APIs in app code, and avoid CSS colours that only modern Chromium supports (Electron 22 is Chromium 108; Tailwind's built-in palette uses `oklch()`).
+
+When the shop PC is upgraded, delete `desktop-win7/`, `backend/requirements-win7.txt`, `.github/workflows/test-win7-compat.yml`, the `windows7-setup` job, and the `--target win7` code in `scripts/buildSoftware.py`.
