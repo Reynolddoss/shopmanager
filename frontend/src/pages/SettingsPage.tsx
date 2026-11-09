@@ -8,12 +8,19 @@ type ShopSettings = {
   address: string;
   gstin: string;
   phone: string;
+  alternate_phone: string;
+  email: string;
+  logo_url: string;
+  authorised_signatory: string;
+  invoice_terms: string;
   invoice_prefix: string;
   backup_retention_count: number;
   scheduled_backup_enabled: boolean;
   ui_theme: UiTheme;
   extra: Record<string, string>;
 };
+
+const fieldClass = "mt-1 w-full rounded-md border border-[var(--line)] bg-[var(--panel)] px-3";
 
 type BackupRow = { folder: string; created_at?: string; reason?: string };
 
@@ -46,7 +53,25 @@ export const SettingsPage = () => {
       const next = { ...row, ui_theme: normalizeTheme(row.ui_theme) };
       setSettings(next);
       setTheme(next.ui_theme);
-      setMessage("Settings saved.");
+      setMessage("Billing details saved. New bills will use them.");
+    });
+  };
+
+  const uploadLogo = (file: File | undefined) => {
+    if (!file) return;
+    void apiClient
+      .uploadShopLogo<ShopSettings>(file)
+      .then((row) => {
+        setSettings({ ...settings, ...row, ui_theme: normalizeTheme(row.ui_theme) });
+        setMessage("Logo saved. It prints on the left of the bill header.");
+      })
+      .catch((error: unknown) => setMessage(error instanceof Error ? error.message : "Logo upload failed."));
+  };
+
+  const removeLogo = () => {
+    void apiClient.clearShopLogo<ShopSettings>().then((row) => {
+      setSettings({ ...settings, ...row, ui_theme: normalizeTheme(row.ui_theme) });
+      setMessage("Logo removed. Bills use the built-in mark until you upload another.");
     });
   };
 
@@ -59,7 +84,7 @@ export const SettingsPage = () => {
     <section>
       <h2 className="text-3xl">Settings</h2>
       <p className="mt-2 max-w-2xl font-sans text-sm text-[var(--muted)]">
-        Shop identity, appearance, backup schedule, and restore. The live database is never stored inside the installer
+        Bill logo and contact details, appearance, backup schedule, and restore. The live database is never stored inside the installer
         folder. Brands and categories live under{" "}
         <Link to="/catalog" className="text-[var(--accent)] underline-offset-2 hover:underline">
           Catalog
@@ -68,7 +93,102 @@ export const SettingsPage = () => {
       </p>
       {message ? <p className="mt-3 font-sans text-sm">{message}</p> : null}
 
-      <div className="mt-8">
+      <div className="mt-8 max-w-4xl">
+        <h3 className="text-xl">Billing</h3>
+        <p className="mt-1 max-w-2xl font-sans text-sm text-[var(--muted)]">
+          This is what prints on every bill. The left column is the logo, name, and address. The right column is phone, email, and GSTIN. Put each extra GSTIN or email on its own line.
+        </p>
+        <div className="mt-4 flex flex-wrap items-center gap-4 font-sans text-sm">
+          {settings.logo_url ? (
+            <img src={settings.logo_url} alt="Bill logo" className="h-16 w-16 rounded-md border border-[var(--line)] object-contain" />
+          ) : (
+            <div className="grid h-16 w-16 place-items-center rounded-md border border-dashed border-[var(--line)] text-xs text-[var(--muted)]">
+              No logo
+            </div>
+          )}
+          <label className="cursor-pointer rounded-md border border-[var(--line)] bg-[var(--panel)] px-3 py-2">
+            Upload logo
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/gif"
+              className="sr-only"
+              onChange={(event) => {
+                uploadLogo(event.target.files?.[0]);
+                event.target.value = "";
+              }}
+            />
+          </label>
+          {settings.logo_url ? (
+            <button type="button" className="rounded-md border border-[var(--line)] px-3 py-2" onClick={removeLogo}>
+              Remove logo
+            </button>
+          ) : null}
+        </div>
+        <div className="mt-6 grid gap-6 md:grid-cols-2">
+          <div className="grid gap-3">
+            {(
+              [
+                ["shop_name", "Shop name"],
+                ["phone", "Phone"],
+                ["alternate_phone", "Alternate phone"],
+                ["invoice_prefix", "Invoice prefix"],
+                ["authorised_signatory", "Authorised signatory"],
+              ] as const
+            ).map(([key, label]) => (
+              <label key={key} className="block font-sans text-sm">
+                <span className="text-[var(--muted)]">{label}</span>
+                <input
+                  className={`${fieldClass} h-10`}
+                  value={settings[key] ?? ""}
+                  onChange={(event) => setSettings({ ...settings, [key]: event.target.value })}
+                />
+              </label>
+            ))}
+            <label className="block font-sans text-sm">
+              <span className="text-[var(--muted)]">Address</span>
+              <textarea
+                className={`${fieldClass} min-h-24 py-2`}
+                value={settings.address ?? ""}
+                onChange={(event) => setSettings({ ...settings, address: event.target.value })}
+              />
+            </label>
+          </div>
+          <div className="grid gap-3">
+            <label className="block font-sans text-sm">
+              <span className="text-[var(--muted)]">GSTIN</span>
+              <textarea
+                className={`${fieldClass} min-h-20 py-2`}
+                value={settings.gstin ?? ""}
+                onChange={(event) => setSettings({ ...settings, gstin: event.target.value })}
+              />
+            </label>
+            <label className="block font-sans text-sm">
+              <span className="text-[var(--muted)]">Email</span>
+              <textarea
+                className={`${fieldClass} min-h-20 py-2`}
+                value={settings.email ?? ""}
+                onChange={(event) => setSettings({ ...settings, email: event.target.value })}
+              />
+            </label>
+          </div>
+        </div>
+        <label className="mt-4 block font-sans text-sm">
+          <span className="text-[var(--muted)]">Terms and conditions</span>
+          <textarea
+            className={`${fieldClass} min-h-36 py-2`}
+            value={settings.invoice_terms ?? ""}
+            onChange={(event) => setSettings({ ...settings, invoice_terms: event.target.value })}
+          />
+        </label>
+        <button
+          type="button"
+          className="mt-4 h-10 rounded-md bg-[var(--accent)] px-3 font-sans text-sm text-[var(--on-accent)]"
+          onClick={save}
+        >
+          Save billing details
+        </button>
+      </div>
+      <div className="mt-10">
         <h3 className="text-xl">Appearance</h3>
         <p className="mt-1 font-sans text-sm text-[var(--muted)]">
           Choose a theme for this shop. Preview applies immediately; save to keep it for every operator on this install.
@@ -93,36 +213,21 @@ export const SettingsPage = () => {
         </div>
       </div>
 
-      <div className="mt-10 grid max-w-xl gap-3">
-        <h3 className="text-xl">Shop identity</h3>
-        {["shop_name", "gstin", "phone", "invoice_prefix", "address"].map((key) => (
-          <label key={key} className="block font-sans text-sm">
-            <span className="text-[var(--muted)]">{key}</span>
-            <input
-              className="mt-1 h-10 w-full rounded-md border border-[var(--line)] bg-[var(--panel)] px-3"
-              value={String(settings[key as keyof ShopSettings] ?? "")}
-              onChange={(event) => setSettings({ ...settings, [key]: event.target.value })}
-            />
-          </label>
-        ))}
-        <label className="flex items-center gap-2 font-sans text-sm">
+      <div className="mt-10">
+        <h3 className="text-xl">Backups</h3>
+        <label className="mt-3 flex items-center gap-2 font-sans text-sm">
           <input
             type="checkbox"
             checked={settings.scheduled_backup_enabled}
-            onChange={(event) => setSettings({ ...settings, scheduled_backup_enabled: event.target.checked })}
+            onChange={(event) => {
+              const scheduled_backup_enabled = event.target.checked;
+              const next = { ...settings, scheduled_backup_enabled };
+              setSettings(next);
+              void apiClient.patch<ShopSettings>("/settings/", next).then(() => setMessage("Backup schedule saved."));
+            }}
           />
           Daily backup when the app is running
         </label>
-        <button
-          type="button"
-          className="h-10 rounded-md bg-[var(--accent)] px-3 font-sans text-sm text-[var(--on-accent)]"
-          onClick={save}
-        >
-          Save settings
-        </button>
-      </div>
-      <div className="mt-10">
-        <h3 className="text-xl">Backups</h3>
         <button
           type="button"
           className="mt-3 h-10 rounded-md border border-[var(--line)] bg-[var(--panel)] px-3 font-sans text-sm"

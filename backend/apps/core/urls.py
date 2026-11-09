@@ -8,6 +8,7 @@ from apps.core.views import (
     BackupRestoreView,
     HealthView,
     InvoicePrintView,
+    SettingsLogoView,
     SettingsView,
     VersionView,
 )
@@ -20,6 +21,7 @@ urlpatterns = [
     path("health/", HealthView.as_view(), name="api-health"),
     path("version/", VersionView.as_view(), name="api-version"),
     path("settings/", SettingsView.as_view(), name="api-settings"),
+    path("settings/logo/", SettingsLogoView.as_view(), name="api-settings-logo"),
     path("backups/", BackupListCreateView.as_view(), name="api-backups"),
     path("backups/restore/", BackupRestoreView.as_view(), name="api-backup-restore"),
     path("sales/<int:pk>/print/", InvoicePrintView.as_view(), name="api-sale-print"),

@@ -245,6 +245,16 @@ export class ApiClient {
   clearProductImage = async <T = ProductRecord>(productId: number): Promise<T> =>
     this.request<T>(`/products/${productId}/image/`, { method: "DELETE" });
 
+  /** Upload the picture printed on the bill letterhead. */
+  uploadShopLogo = async <T>(file: File): Promise<T> => {
+    const body = new FormData();
+    body.append("image", file);
+    return this.request<T>("/settings/logo/", { method: "POST", body });
+  };
+
+  /** Remove the bill logo so the built-in mark is used again. */
+  clearShopLogo = async <T>(): Promise<T> => this.request<T>("/settings/logo/", { method: "DELETE" });
+
   getAuthStatus = async (): Promise<AuthStatusResponse> => this.get<AuthStatusResponse>("/auth/status/");
 
   registerShop = async (payload: RegisterPayload): Promise<AuthStatusResponse> =>

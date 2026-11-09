@@ -15,8 +15,19 @@ const ensurePrintFrame = (): HTMLIFrameElement => {
   frame.id = FRAME_ID;
   frame.title = "Print preview";
   frame.setAttribute("aria-hidden", "true");
-  // Not display:none: some engines skip loading/printing hidden frames.
-  Object.assign(frame.style, { position: "fixed", right: "0", bottom: "0", width: "0", height: "0", border: "0", opacity: "0" });
+  // A real A4 frame. A zero-size frame lays the bill out in no space, so the
+  // printed page is not A4. Opacity hides it; display:none would skip printing.
+  Object.assign(frame.style, {
+    position: "fixed",
+    left: "0",
+    top: "0",
+    width: "210mm",
+    height: "297mm",
+    border: "0",
+    opacity: "0",
+    pointerEvents: "none",
+    zIndex: "-1",
+  });
   document.body.appendChild(frame);
   return frame;
 };

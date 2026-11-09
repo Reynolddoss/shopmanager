@@ -80,6 +80,7 @@ class AuthService:
         settings_row.address = payload.get("address") or ""
         settings_row.gstin = payload.get("gstin") or ""
         settings_row.phone = payload.get("phone") or ""
+        settings_row.email = payload.get("email") or ""
         settings_row.invoice_prefix = prefix
         settings_row.sale_invoice_prefix = prefix
         extra = settings_row.extra if isinstance(settings_row.extra, dict) else {}

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from django.conf import settings
 from django.db import connection
+from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -11,6 +12,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 
 from apps.core.backup import snapshot_backup_service
+from apps.core.logo_service import shop_logo_service
 from apps.core.health import health_service
 from apps.core.printing import invoice_print_service
 from apps.core.serializers import ApplicationSettingsSerializer
@@ -92,3 +94,23 @@ class SettingsView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
+
+
+class SettingsLogoView(APIView):
+    """Upload or remove the picture printed at the top of every bill."""
+
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request: Request) -> Response:
+        upload = request.FILES.get("image")
+        if upload is None:
+            return Response(
+                {"error": {"code": "bad_request", "message": "Choose a logo to upload.", "details": None}},
+                status=400,
+            )
+        row = shop_logo_service.assign(settings_service.get_or_create(), upload)
+        return Response(ApplicationSettingsSerializer(row).data)
+
+    def delete(self, request: Request) -> Response:
+        row = shop_logo_service.clear(settings_service.get_or_create())
+        return Response(ApplicationSettingsSerializer(row).data)

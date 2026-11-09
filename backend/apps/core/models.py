@@ -7,7 +7,16 @@ This app owns cross-cutting records that every domain may write to.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from django.db import models
+
+
+def shop_logo_upload_to(_instance: object, filename: str) -> str:
+    """Store one shop logo under media/branding, keeping the uploaded extension."""
+    allowed = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
+    ext = Path(filename).suffix.lower()
+    return f"branding/shop-logo{ext if ext in allowed else '.png'}"
 
 
 class TimeStampedModel(models.Model):
@@ -25,6 +34,20 @@ class TimeStampedModel(models.Model):
         abstract = True
 
 
+class InvoiceCopy:
+    """Wording printed on every customer bill until the shop replaces it."""
+
+    DEFAULT_TERMS = (
+        "Goods once sold will not be taken back or exchanged.\n"
+        "Warranty, where applicable, is as per the manufacturer only.\n"
+        "GST is charged extra as shown on this bill.\n"
+        "Goods remain the property of the shop until this bill is paid in full.\n"
+        "Shortage or damage must be reported at the time of delivery.\n"
+        "Please check the items and the bill before leaving the counter.\n"
+        "Subject to local jurisdiction. E. & O.E."
+    )
+
+
 class ApplicationSettings(TimeStampedModel):
     """
     Singleton row for shop-wide configuration.
@@ -36,8 +59,15 @@ class ApplicationSettings(TimeStampedModel):
     singleton_key = models.PositiveSmallIntegerField(default=1, unique=True, editable=False)
     shop_name = models.CharField(max_length=255, default="")
     address = models.TextField(blank=True, default="")
-    gstin = models.CharField(max_length=32, blank=True, default="")
+    # More than one GSTIN or email is allowed: one value per line, or separated by commas.
+    gstin = models.TextField(blank=True, default="")
     phone = models.CharField(max_length=32, blank=True, default="")
+    alternate_phone = models.CharField(max_length=32, blank=True, default="")
+    email = models.TextField(blank=True, default="")
+    logo = models.ImageField(upload_to=shop_logo_upload_to, blank=True, null=True)
+    # Name under the signature line. Blank prints "Authorised signatory".
+    authorised_signatory = models.CharField(max_length=128, blank=True, default="")
+    invoice_terms = models.TextField(blank=True, default=InvoiceCopy.DEFAULT_TERMS)
     invoice_prefix = models.CharField(max_length=16, default="SH")
     currency = models.CharField(max_length=8, default="INR")
     default_tax_inclusive = models.BooleanField(default=False)

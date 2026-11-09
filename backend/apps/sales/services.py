@@ -13,6 +13,7 @@ from django.db import transaction
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
+from apps.core.logo_service import shop_logo_service
 from apps.core.models import ApplicationSettings
 from apps.core.numbering import document_number_service
 from apps.core.services import audit_service
@@ -54,10 +55,18 @@ class InvoicePayloadService:
             "shop_gstin": settings_row.gstin if settings_row else "",
             "shop_address": settings_row.address if settings_row else "",
             "shop_phone": settings_row.phone if settings_row else "",
+            "shop_alternate_phone": settings_row.alternate_phone if settings_row else "",
+            "shop_email": settings_row.email if settings_row else "",
+            "shop_logo_data": shop_logo_service.data_uri(settings_row),
+            "authorised_signatory": settings_row.authorised_signatory if settings_row else "",
+            "invoice_terms": settings_row.invoice_terms if settings_row else "",
             "invoice_number": sale.invoice_number,
             "invoice_date": str(sale.invoice_date),
             "customer": sale.customer.name if sale.customer_id else "Walk-in",
             "customer_gstin": sale.customer.gstin if sale.customer_id else "",
+            "customer_phone": sale.customer.phone if sale.customer_id else "",
+            "customer_alternate_phone": sale.customer.alternate_phone if sale.customer_id else "",
+            "customer_address": sale.customer.address if sale.customer_id else "",
             "items": items,
             "subtotal": str(sale.subtotal),
             "discount_amount": str(sale.discount_amount),
