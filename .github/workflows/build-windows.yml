@@ -76,8 +76,9 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-  # Windows 7 installer: API frozen with Python 3.8.10 (the last python.org
-  # release for Windows 7) inside the Electron 22 shell in desktop-win7/.
+  # Windows 7 installer: API frozen with 32-bit Python 3.8.10 (the last
+  # python.org release for Windows 7) inside the 32-bit Electron 22 shell in
+  # desktop-win7/. 32-bit runs on both 32- and 64-bit Windows 7.
   # Delete this job once the Windows 7 shop PC has been upgraded.
   windows7-setup:
     name: Windows 7 Setup.exe
@@ -92,7 +93,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.8.10"
-          architecture: x64
+          architecture: x86
           cache: "pip"
           cache-dependency-path: backend/requirements-win7.txt
 

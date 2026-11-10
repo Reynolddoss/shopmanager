@@ -7,7 +7,7 @@
 # bundles it into the installer.
 #
 # Usage (PowerShell, with the Python 3.8 you build with):
-#   scripts\win7-sqlite.ps1 -Python C:\Python38\python.exe
+#   scripts\win7-sqlite.ps1 -Python C:\Python38-32\python.exe
 
 param(
     [string]$Python = "python"
@@ -15,8 +15,15 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-$Url = "https://www.sqlite.org/2024/sqlite-dll-win-x64-3460100.zip"
-$Sha256 = "300cb2918946f42a1a2f7f31a8dd89edc202570e4e49d21e13d33ecdf80a6b67"
+# The DLL must match Python's bitness; the Windows 7 build uses 32-bit Python.
+$bits = & $Python -c "import struct; print(struct.calcsize('P') * 8)"
+if ($bits -eq "32") {
+    $Url = "https://www.sqlite.org/2024/sqlite-dll-win-x86-3460100.zip"
+    $Sha256 = "c531c7ad3c3bc50b0f4db822548f8f16309a3072cbbbf31b322cc0ea1ef963c6"
+} else {
+    $Url = "https://www.sqlite.org/2024/sqlite-dll-win-x64-3460100.zip"
+    $Sha256 = "300cb2918946f42a1a2f7f31a8dd89edc202570e4e49d21e13d33ecdf80a6b67"
+}
 
 $work = Join-Path ([System.IO.Path]::GetTempPath()) "mm-sqlite-dll"
 New-Item -ItemType Directory -Force -Path $work | Out-Null

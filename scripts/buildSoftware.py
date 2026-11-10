@@ -140,6 +140,18 @@ class SoftwareBuilder:
                 f"--target win7 needs Python {wanted} (found {version or 'none'} at {self.python}). "
                 f"Create .venv-win7 with Python 3.8.10 and install backend/requirements-win7.txt into it."
             )
+        # The Electron shell is 32-bit (the shop PC runs 32-bit Windows 7); the API must match.
+        bits_probe = subprocess.run(
+            [str(self.python), "-c", "import struct; print(struct.calcsize('P') * 8)"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if self.is_windows and bits_probe.stdout.strip() != "32":
+            raise RuntimeError(
+                f"--target win7 needs 32-bit Python 3.8 (found {bits_probe.stdout.strip() or '?'}-bit at "
+                f"{self.python}). Install the 'Windows x86' Python 3.8.10 and create .venv-win7 from it."
+            )
         # python.org's 3.8 for Windows ships SQLite without JSON1, which Django's JSONField needs.
         json_probe = subprocess.run(
             [str(self.python), "-c", "import sqlite3; sqlite3.connect(':memory:').execute('select json_valid(1)')"],
